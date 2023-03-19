@@ -5,7 +5,7 @@ use sqlx::{migrate, PgPool};
 use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use okruszek::{app, AppState, Environment};
+use backend::{app, AppState, Environment};
 
 #[tokio::main]
 async fn main() {

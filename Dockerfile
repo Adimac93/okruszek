@@ -9,7 +9,7 @@ COPY frontend .
 RUN npm run build
 
 # Backend
-FROM lukemathwalker/cargo-chef:latest-rust-1.65.0 as chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.68.0 as chef
 WORKDIR /app
 RUN apt update && apt install lld clang -y
 
