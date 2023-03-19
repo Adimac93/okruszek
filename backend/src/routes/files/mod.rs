@@ -1,17 +1,14 @@
-use axum::{extract::Multipart, routing::post, Router, Json};
+use axum::{routing::post, Router, Json};
 use axum::extract::Path;
 use axum::http::{StatusCode, Uri};
-use axum::response::IntoResponse;
 use axum::routing::get;
 use base64::Engine;
-use tracing::debug;
-use tracing::field::debug;
 use uuid::Uuid;
 use crate::AppState;
 
 
 pub fn get_file_path(id: Uuid) -> String {
-    format!("../files/{id}.data")
+    format!("./files/{id}.data")
 }
 
 async fn fetch(Path(file_id): Path<Uuid>) -> Result<Vec<u8>, StatusCode>{
