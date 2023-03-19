@@ -4,14 +4,15 @@ use std::collections::HashMap;
 use crate::routes::products::errors::ProductError;
 use crate::AppState;
 use axum::extract::{Path, State};
-use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{debug_handler, Json, Router};
 use axum::body::Bytes;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 use sqlx::{query, query_as, PgPool};
+use tracing::{debug, error};
 use crate::routes::auth::session::Session;
+use crate::routes::files::get_file_path;
 
 pub fn router() -> Router<AppState> {
 
@@ -51,7 +52,7 @@ async fn fetch_all(session: Session, pool: State<PgPool>) -> Result<Json<HashMap
 
     let product_ids = res.iter().map(|x| x.id);
     for product_id in product_ids {
-        let res = tokio::fs::read_to_string(format!("../files/{}", product_id)).await;
+        let res = tokio::fs::read_to_string(get_file_path(product_id)).await;
         if let Ok(buf) = res {
             if let Some(product) = products.get_mut(&product_id) {
                 product.image = Some(buf);
@@ -126,7 +127,10 @@ async fn add(session: Session, pool: State<PgPool>, Json(body): Json<AddProduct>
 
     if let Some(image) = body.image {
         let bytes = Bytes::from(image);
-        tokio::fs::write(format!("../files/{id}"),bytes).await;
+        match tokio::fs::write(get_file_path(id),bytes).await {
+            Ok(_) => debug!("Saved product image"),
+            Err(e) => error!("Failed to save a file {e}")
+        }
     }
 
     Ok(())

@@ -10,8 +10,12 @@ use uuid::Uuid;
 use crate::AppState;
 
 
+pub fn get_file_path(id: Uuid) -> String {
+    format!("../files/{id}.data")
+}
+
 async fn fetch(Path(file_id): Path<Uuid>) -> Result<Vec<u8>, StatusCode>{
-    let res = tokio::fs::read(format!("../files/{file_id}")).await;
+    let res = tokio::fs::read(get_file_path(file_id)).await;
     if let Ok(buf) = res {
         let base = base64::engine::general_purpose::STANDARD;
 

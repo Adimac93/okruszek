@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { Fetch } from "../api";
   import { isAuthorized } from "../stores";
 

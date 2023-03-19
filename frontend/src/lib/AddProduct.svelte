@@ -22,9 +22,9 @@
 
   let fileinput;
   const onFileSelected = (e) => {
-    let image = e.target.files[0];
+    const file = e.target.files[0];
     let reader = new FileReader();
-    reader.readAsDataURL(image);
+    reader.readAsDataURL(file);
     reader.onload = (e) => {
       alert("Image loaded");
       image = e.target.result;

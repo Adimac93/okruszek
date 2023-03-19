@@ -33,7 +33,7 @@
 
 {#each [...$products.entries()] as [id, body]}
   {#if body.image}
-    <img src={body.image} alt="bułka" width="250" height="250" />
+    <img src={body.image} alt="bułka" height="300" width="300" />
   {/if}
   <h1>{body.name}</h1>
   <h2>Cena: {body.price}zł</h2>
