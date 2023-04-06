@@ -7,6 +7,7 @@ use sqlx::{migrate, PgPool};
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::{ServeDir, ServeFile};
 use crate::routes::{auth, files, products};
+use crate::routes::files::BucketClient;
 
 pub mod routes;
 
@@ -38,7 +39,8 @@ async fn not_found(
 
 #[derive(FromRef, Clone)]
 pub struct AppState {
-    pub pool: PgPool
+    pub pool: PgPool,
+    pub bucket_client: BucketClient,
 }
 
 impl AppState {
@@ -47,7 +49,8 @@ impl AppState {
         if environment == Environment::Production {
             migrate!("./migrations").run(&pool).await.expect("Failed to migrate");
         }
-        Self { pool }
+        let bucket_client = BucketClient::new().await;
+        Self { pool, bucket_client }
     }
 }
 

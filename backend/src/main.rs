@@ -25,9 +25,8 @@ async fn main() {
 
 
     let addr = match environment {
-        Environment::Development => SocketAddr::from(([127, 0, 0, 1], 3000)),
+        Environment::Development => SocketAddr::from(([127, 0, 0, 1], 3002)),
         Environment::Production => {
-            let res = tokio::fs::create_dir("./files").await;
             let port = env::var("PORT").expect("PORT var missing").parse::<u16>().expect("Failed to parse PORT var");
             SocketAddr::from(([0, 0, 0, 0], port)) }
     };

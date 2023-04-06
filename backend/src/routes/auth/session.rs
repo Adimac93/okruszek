@@ -9,12 +9,12 @@ use uuid::Uuid;
 use crate::routes::auth::errors::AuthError;
 use crate::routes::auth::SESSION_COOKIE_NAME;
 
-pub struct Session {
+pub struct Claims {
     pub user_id: Uuid
 }
 
 #[async_trait]
-impl<S> FromRequestParts<S> for Session
+impl<S> FromRequestParts<S> for Claims
     where S: Send + Sync, PgPool: FromRef<S>
 {
     type Rejection = AuthError;
@@ -34,7 +34,7 @@ impl<S> FromRequestParts<S> for Session
             ).fetch_optional(&pool).await?;
 
             if let Some(session) = res {
-                return Ok(Session { user_id: session.user_id });
+                return Ok(Claims { user_id: session.user_id });
             }
 
 

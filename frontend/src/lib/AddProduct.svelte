@@ -27,7 +27,7 @@
     reader.readAsDataURL(file);
     reader.onload = (e) => {
       alert("Image loaded");
-      image = e.target.result;
+      image = (e.target.result as string).split(",")[1];
     };
   };
 </script>

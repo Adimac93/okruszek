@@ -7,12 +7,14 @@ use axum::extract::{Path, State};
 use axum::routing::get;
 use axum::{debug_handler, Json, Router};
 use axum::body::Bytes;
+use axum::http::header::CONTENT_TYPE;
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 use sqlx::{query, query_as, PgPool};
 use tracing::{debug, error};
-use crate::routes::auth::session::Session;
-use crate::routes::files::get_file_path;
+use crate::routes::auth::session::Claims;
+use crate::routes::files::BucketClient;
 
 pub fn router() -> Router<AppState> {
 
@@ -31,7 +33,7 @@ struct Product {
     image: Option<String>,
 }
 
-async fn fetch_all(session: Session, pool: State<PgPool>) -> Result<Json<HashMap<Uuid,Product>>, ProductError> {
+async fn fetch_all(session: Claims, pool: State<PgPool>, State(BucketClient(client)): State<BucketClient>) -> Result<Json<HashMap<Uuid,Product>>, ProductError> {
     let mut conn = pool.acquire().await.unwrap();
     let res = query!(r#"
     SELECT id, name, price, rating
@@ -52,12 +54,18 @@ async fn fetch_all(session: Session, pool: State<PgPool>) -> Result<Json<HashMap
 
     let product_ids = res.iter().map(|x| x.id);
     for product_id in product_ids {
-        let res = tokio::fs::read_to_string(get_file_path(product_id)).await;
-        if let Ok(buf) = res {
+        let res = client
+            .get(format!("http://127.0.0.1:3001/download/{product_id}"))
+            .send().await.ok();
+
+        if let Some(res) = res {
             if let Some(product) = products.get_mut(&product_id) {
-                product.image = Some(buf);
+                let encoded = base64::engine::general_purpose::STANDARD.encode(res.bytes().await.unwrap());
+                product.image = Some(encoded);
             }
         }
+
+
     }
 
     Ok(Json(products))
@@ -70,7 +78,7 @@ struct Rating {
 }
 
 #[debug_handler]
-async fn ratings(session: Session, pool: State<PgPool>, Path(product_id): Path<Uuid>) -> Result<Json<Vec<Rating>>, ProductError> {
+async fn ratings(session: Claims, pool: State<PgPool>, Path(product_id): Path<Uuid>) -> Result<Json<Vec<Rating>>, ProductError> {
     let mut conn = pool.acquire().await?;
     let ratings = query_as!(Rating, r#"
     SELECT username, rating
@@ -88,7 +96,7 @@ struct Rate {
     rating: i32,
 }
 
-async fn rate(session: Session, pool: State<PgPool>, Path(product_id): Path<Uuid>, Json(body): Json<Rate>) -> Result<(), ProductError> {
+async fn rate(session: Claims, pool: State<PgPool>, Path(product_id): Path<Uuid>, Json(body): Json<Rate>) -> Result<(), ProductError> {
     let mut transaction = pool.begin().await?;
     let res = query!(r#"
     SELECT *
@@ -117,21 +125,29 @@ struct AddProduct {
     image: Option<String>,
 }
 
-async fn add(session: Session, pool: State<PgPool>, Json(body): Json<AddProduct>) -> Result<(), ProductError> {
-    let mut conn = pool.acquire().await?;
-    let id = query!(r#"
-    INSERT INTO products (name, price)
-    VALUES ($1, $2)
-    RETURNING id
-    "#, body.name, body.price).fetch_one(&mut *conn).await?.id;
-
+async fn add(session: Claims, State(pool): State<PgPool>, State(BucketClient(client)): State<BucketClient>, Json(body): Json<AddProduct>) -> Result<(), ProductError> {
     if let Some(image) = body.image {
-        let bytes = Bytes::from(image);
-        match tokio::fs::write(get_file_path(id),bytes).await {
-            Ok(_) => debug!("Saved product image"),
-            Err(e) => error!("Failed to save a file {e}")
-        }
+        let decoded = base64::engine::general_purpose::STANDARD.decode(image).unwrap();
+        let bytes = Bytes::from(decoded);
+        let part = reqwest::multipart::Part::bytes(bytes.to_vec()).file_name("name.png");
+        let form = reqwest::multipart::Form::new().part("file", part);
+        let res = client
+            .post("http://127.0.0.1:3001/upload")
+            .multipart(form)
+            .header(CONTENT_TYPE, "multipart/form-data")
+            .send().await.unwrap();
+
+        let json = res.json::<Vec<Uuid>>().await.unwrap();
+        let file_id = json[0];
+        let mut conn = pool.acquire().await?;
+
+        let id = query!(r#"
+        INSERT INTO products (id, name, price)
+        VALUES ($1, $2, $3)
+        "#, file_id, body.name, body.price).execute(&mut *conn).await?;
     }
+
+
 
     Ok(())
 }

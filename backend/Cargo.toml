@@ -12,7 +12,9 @@ axum = { version = "0.6.11", features = ["macros", "multipart"] }
 axum-extra = { version = "0.7.1", features = ["cookie"] }
 base64 = "0.21.0"
 dotenv = "0.15.0"
+hyper = "0.14.25"
 rand = "0.8.5"
+reqwest = { version = "0.11.16", features = ["json", "tokio-rustls", "multipart", "stream"] }
 serde = "1.0.156"
 serde_json = "1.0.94"
 sqlx = { version = "0.6.2", features = ["runtime-tokio-rustls", "postgres", "uuid", "offline"] }
@@ -22,5 +24,6 @@ tower = "0.4.13"
 tower-http = { version = "0.4.0", features = ["fs", "cors"] }
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
+tracing-test = "0.2.4"
 uuid = { version = "1.3.0", features = ["v4", "serde"] }
 zxcvbn = "2.2.1"

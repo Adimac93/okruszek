@@ -6,12 +6,15 @@
 
   const api = new Fetch();
   onMount(async () => {
-    const res = await api.json("/api/products", "GET");
+    console.log("Getting products")
+    const res = await fetch("/api/products");
     if (res) {
       const body = await res.json();
+      console.log(body);
       let pr = new Map<string, Product>();
       Object.entries(body).forEach(([id, body]) => {
-        pr.set(id, body as Product);
+        let product = body as Product;
+        pr.set(id, product);
       });
       products.set(pr);
     }
@@ -33,7 +36,7 @@
 
 {#each [...$products.entries()] as [id, body]}
   {#if body.image}
-    <img src={body.image} alt="bułka" height="300" width="300" />
+    <img src={"data:image;base64," + body.image} alt="bułka" height="300" width="300" />
   {/if}
   <h1>{body.name}</h1>
   <h2>Cena: {body.price}zł</h2>
