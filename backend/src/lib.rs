@@ -1,13 +1,13 @@
 use std::env;
 use axum::extract::FromRef;
-use axum::{debug_handler, Router};
+use axum::Router;
 use axum::http::{StatusCode, Uri};
 use axum::response::IntoResponse;
 use sqlx::{migrate, PgPool};
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::{ServeDir, ServeFile};
-use crate::routes::{auth, files, products};
-use crate::routes::files::BucketClient;
+use crate::routes::{auth, products};
+use crate::routes::products::files::BucketClient;
 
 pub mod routes;
 
@@ -16,8 +16,7 @@ pub fn app(app_state: AppState) -> Router {
 
     let api = Router::new()
         .nest("/auth", auth::router())
-        .nest("/products",products::router())
-        .nest("/files", files::router());
+        .nest("/products",products::router());
 
     Router::new()
         .nest("/api", api)
@@ -49,7 +48,7 @@ impl AppState {
         if environment == Environment::Production {
             migrate!("./migrations").run(&pool).await.expect("Failed to migrate");
         }
-        let bucket_client = BucketClient::new().await;
+        let bucket_client = BucketClient::new("http://127.0.0.1:3001").await;
         Self { pool, bucket_client }
     }
 }

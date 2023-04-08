@@ -21,6 +21,7 @@ CREATE TABLE sessions (
 
 CREATE TABLE products (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
+    image_id UUID,
     name TEXT NOT NULL,
     price FLOAT NOT NULL,
     PRIMARY KEY (id)

@@ -3,7 +3,6 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::Path;
 use dotenv::dotenv;
 use sha1::{Sha1, Digest};
-use sqlx::{migrate, PgPool};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tokio::process::Command;
