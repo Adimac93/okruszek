@@ -1,30 +1,35 @@
 <script lang="ts">
-  import { Fetch } from "../api";
-  import { isAuthorized } from "../stores";
+    import { Fetch } from "../api";
+    import type { RegisterCredentials } from "../interfaces";
+    import { isAuthorized } from "../stores";
 
-  let email = "";
-  let username = "";
-  let passA = "";
-  let passB = "";
+    let email = "";
+    let username = "";
+    let passA = "";
+    let passB = "";
 
-  const api = new Fetch();
+    const api = new Fetch();
 
-  const register = async () => {
-    if (passA != passB || passA == "") {
-      alert("Passwords are not the same");
-      return;
-    }
-    const res = await api.json("/api/auth/register", "POST", {
-      email,
-      username,
-      password: passA,
-    });
+    const register = async () => {
+        if (passA != passB || passA == "") {
+            alert("Passwords are not the same");
+            return;
+        }
+        const res = await api.json<RegisterCredentials>(
+            "/api/auth/register",
+            "POST",
+            {
+                email,
+                username,
+                password: passA,
+            }
+        );
 
-    if (res) {
-      isAuthorized.set(true);
-      console.debug("Registered");
-    }
-  };
+        if (res) {
+            isAuthorized.set(true);
+            console.debug("Registered");
+        }
+    };
 </script>
 
 <input type="email" placeholder="email" bind:value={email} />
@@ -34,11 +39,11 @@
 <button on:click={register}>Register</button>
 
 <style>
-  input {
-    display: block;
-    margin: auto;
-    margin-bottom: 0.5em;
-    align-items: center;
-    text-align: center;
-  }
+    input {
+        display: block;
+        margin: auto;
+        margin-bottom: 0.5em;
+        align-items: center;
+        text-align: center;
+    }
 </style>
