@@ -1,22 +1,18 @@
-use std::io::Read;
-use axum::{routing::post, Router, Json, Form, debug_handler};
-use axum::body::{Bytes, StreamBody};
+use axum::{routing::post, Router, Json, debug_handler};
+use axum::body::StreamBody;
 use axum::extract::{Multipart, Path, State};
-use axum::http::{StatusCode, Uri};
-use axum::response::{Html, IntoResponse};
+use axum::response::IntoResponse;
 use axum::routing::get;
 use base64::Engine;
-use hyper::Body;
 use hyper::header::CONTENT_TYPE;
-use reqwest::{Client, RequestBuilder, Response};
+use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, HeaderMap};
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use tracing::debug;
-use tracing_test::traced_test;
+use typeshare::typeshare;
 use uuid::Uuid;
 use crate::AppState;
-use crate::routes::auth::session::Claims;
 
 
 pub fn router() -> Router<AppState> {
@@ -61,6 +57,7 @@ impl BucketClient {
     }
 }
 
+#[typeshare]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all="camelCase")]
 struct AuthKey {
@@ -131,15 +128,4 @@ async fn key() {
         .get(format!("http://127.0.0.1:3001/delete/{file_id}"))
         .basic_auth(json.key_id, Some(json.key))
         .send().await.unwrap();
-}
-
-#[tokio::test]
-async fn a() {
-    key().await;
-}
-
-#[traced_test]
-#[tokio::test]
-async fn b() {
-
 }

@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 use sqlx::{query, query_as, PgPool};
 use tracing::{debug, error};
+use typeshare::typeshare;
 use crate::routes::auth::session::Claims;
 use crate::routes::files::BucketClient;
 
@@ -25,6 +26,7 @@ pub fn router() -> Router<AppState> {
 
 }
 
+#[typeshare]
 #[derive(Serialize)]
 struct Product {
     name: String,
@@ -71,6 +73,7 @@ async fn fetch_all(session: Claims, pool: State<PgPool>, State(BucketClient(clie
     Ok(Json(products))
 }
 
+#[typeshare]
 #[derive(Serialize)]
 struct Rating {
     username: String,
@@ -91,6 +94,7 @@ async fn ratings(session: Claims, pool: State<PgPool>, Path(product_id): Path<Uu
     Ok(Json(ratings))
 }
 
+#[typeshare]
 #[derive(Deserialize)]
 struct Rate {
     rating: i32,
@@ -118,6 +122,7 @@ async fn rate(session: Claims, pool: State<PgPool>, Path(product_id): Path<Uuid>
 }
 
 
+#[typeshare]
 #[derive(Deserialize)]
 struct AddProduct {
     name: String,
@@ -139,15 +144,12 @@ async fn add(session: Claims, State(pool): State<PgPool>, State(BucketClient(cli
 
         let json = res.json::<Vec<Uuid>>().await.unwrap();
         let file_id = json[0];
-        let mut conn = pool.acquire().await?;
 
-        let id = query!(r#"
+        let _id = query!(r#"
         INSERT INTO products (id, name, price)
         VALUES ($1, $2, $3)
-        "#, file_id, body.name, body.price).execute(&mut *conn).await?;
+        "#, file_id, body.name, body.price).execute(&pool).await?;
     }
-
-
 
     Ok(())
 }

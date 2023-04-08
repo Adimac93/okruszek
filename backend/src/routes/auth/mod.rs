@@ -15,6 +15,7 @@ use axum_extra::extract::CookieJar;
 use sqlx::PgPool;
 use sqlx::types::Uuid;
 use tracing::{debug, trace};
+use typeshare::typeshare;
 use crate::AppState;
 use crate::routes::auth::errors::AuthError;
 
@@ -27,6 +28,7 @@ pub fn router() -> Router<AppState> {
         .route("/logout", post(logout))
 }
 
+#[typeshare]
 #[derive(Deserialize)]
 struct RegisterCredentials {
     username: String,
@@ -77,6 +79,7 @@ async fn register(pool: State<PgPool>, jar: CookieJar, Json(body): Json<Register
     return Ok(jar.add(session_cookie(session_id)));
 }
 
+#[typeshare]
 #[derive(Deserialize)]
 struct LoginCredentials {
     email: String,

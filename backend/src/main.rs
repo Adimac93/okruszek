@@ -1,8 +1,13 @@
 use std::{env, fs};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::path::Path;
 use dotenv::dotenv;
+use sha1::{Sha1, Digest};
 use sqlx::{migrate, PgPool};
-use tracing::info;
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
+use tokio::process::Command;
+use tracing::{error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use backend::{app, AppState, Environment};
@@ -20,12 +25,48 @@ async fn main() {
         .init();
 
 
+
+
     let env = env::var("APP_ENVIRONMENT").expect("APP_ENVIRONMENT var missing");
     let environment = Environment::try_from(env).unwrap();
 
 
     let addr = match environment {
-        Environment::Development => SocketAddr::from(([127, 0, 0, 1], 3002)),
+        Environment::Development => {
+
+            let output_dir = "../frontend/src/lib/interfaces.ts";
+
+            let prev_checksum = get_file_checksum(output_dir).await;
+
+
+            let _output = Command::new("typeshare")
+                .arg(".")
+                .arg("--lang=typescript")
+                .arg("--output-file=../frontend/src/lib/interfaces.ts")
+                .output()
+                .await
+                .expect("Failed to execute typeshare");
+
+            let curr_checksum = get_file_checksum(output_dir).await;
+
+            match (prev_checksum, curr_checksum) {
+                (Some(p), Some(c)) => {
+                    if p == c {
+                        info!("Typeshare interfaces unchanged");
+                    } else {
+                        info!("Typeshare interfaces updated");
+                    }
+                },
+                (None, Some(_)) => {
+                    info!("Typeshare interfaces created");
+                }
+                _ => {
+                    error!("Typesahre interfaces error");
+                }
+            }
+
+            SocketAddr::from(([127, 0, 0, 1], 3002))
+        },
         Environment::Production => {
             let port = env::var("PORT").expect("PORT var missing").parse::<u16>().expect("Failed to parse PORT var");
             SocketAddr::from(([0, 0, 0, 0], port)) }
@@ -38,4 +79,18 @@ async fn main() {
             app(app_state).into_make_service()
         ).await
         .expect("Failed to run axum server");
+}
+
+async fn get_file_checksum(path: impl AsRef<Path>) -> Option<String> {
+    if let Ok(mut file) = File::open(path).await {
+        let mut buf = String::new();
+        if let Ok(size) = file.read_to_string(&mut buf).await {
+            let mut hasher = Sha1::new();
+            hasher.update(buf.as_bytes());
+            let hash = hasher.finalize();
+            let checksum = format!("{hash:x}");
+            return Some(checksum);
+        }
+    }
+    None
 }
