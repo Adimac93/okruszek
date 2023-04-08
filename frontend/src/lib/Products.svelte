@@ -1,14 +1,13 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { Fetch } from "./api";
+    import { json } from "./api";
     import Rate from "./Rate.svelte";
     import { products, type InterfaceProduct } from "./stores";
     import type { Product } from "./interfaces";
 
-    const api = new Fetch();
     onMount(async () => {
         console.log("Getting products");
-        const res = await api.json("/api/products", "GET");
+        const res = await json("/api/products", "GET");
         if (res) {
             const body = await res.json();
             console.log(body);
@@ -22,7 +21,7 @@
     });
 
     const loadRatings = async (id: string) => {
-        const res = await api.json(`/api/products/ratings/${id}`, "GET");
+        const res = await json(`/api/products/ratings/${id}`, "GET");
         if (res) {
             const body = await res.json();
             products.update((pr) => {

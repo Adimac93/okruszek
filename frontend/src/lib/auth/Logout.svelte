@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { Fetch } from "../api";
+    import { json } from "../api";
     import { isAuthorized } from "../stores";
 
-    const api = new Fetch();
     const logout = async () => {
-        const res = await api.json("/api/auth/logout", "POST");
+        const res = await json("/api/auth/logout", "POST");
         if (res) {
             isAuthorized.set(false);
         }

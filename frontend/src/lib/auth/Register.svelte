@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Fetch } from "../api";
+    import { json } from "../api";
     import type { RegisterCredentials } from "../interfaces";
     import { isAuthorized } from "../stores";
 
@@ -8,14 +8,12 @@
     let passA = "";
     let passB = "";
 
-    const api = new Fetch();
-
     const register = async () => {
         if (passA != passB || passA == "") {
             alert("Passwords are not the same");
             return;
         }
-        const res = await api.json<RegisterCredentials>(
+        const res = await json<RegisterCredentials>(
             "/api/auth/register",
             "POST",
             {

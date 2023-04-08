@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Fetch } from "./api";
+    import { json } from "./api";
     import type { AddProduct } from "./interfaces";
 
     let name;
@@ -8,9 +8,8 @@
 
     let prompt = false;
 
-    const api = new Fetch();
     const createProduct = async () => {
-        const res = api.json<AddProduct>("/api/products", "PUT", {
+        const res = json<AddProduct>("/api/products", "PUT", {
             name,
             price,
             image,

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Fetch } from "./api";
+    import { json } from "./api";
     import type { Rate } from "./interfaces";
     import { products } from "./stores";
 
@@ -7,9 +7,8 @@
 
     export let productId: string;
 
-    const api = new Fetch();
     const rate = async () => {
-        const res = await api.json<Rate>(
+        const res = await json<Rate>(
             `/api/products/ratings/${productId}`,
             "PUT",
             {

@@ -1,19 +1,16 @@
 <script lang="ts">
-    import { Fetch } from "../api";
+    import { json } from "../api";
     import { isAuthorized } from "../stores";
     import type { LoginCredentials } from "../interfaces";
 
     let email = "";
     let password = "";
 
-    const api = new Fetch();
-
     const login = async () => {
-        const res = await api.json<LoginCredentials>(
-            "/api/auth/login",
-            "POST",
-            { email, password }
-        );
+        const res = await json<LoginCredentials>("/api/auth/login", "POST", {
+            email,
+            password,
+        });
         if (res) {
             isAuthorized.set(true);
             console.debug("Logged in");
