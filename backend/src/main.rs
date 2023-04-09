@@ -64,7 +64,7 @@ async fn main() {
                 }
             }
 
-            SocketAddr::from(([127, 0, 0, 1], 3002))
+            SocketAddr::from(([127, 0, 0, 1], 3000))
         },
         Environment::Production => {
             let port = env::var("PORT").expect("PORT var missing").parse::<u16>().expect("Failed to parse PORT var");

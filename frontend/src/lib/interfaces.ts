@@ -13,11 +13,6 @@ export interface LoginCredentials {
 	password: string;
 }
 
-export interface AuthKey {
-	keyId: string;
-	key: string;
-}
-
 export interface Product {
 	name: string;
 	price: number;

@@ -1,22 +1,46 @@
-use axum::{Router, Json, debug_handler};
+use anyhow::anyhow;
 use axum::body::{Bytes};
-use axum::extract::{FromRef, Multipart, Path, State};
+use axum::extract::FromRef;
 use base64::Engine;
 use hyper::header::CONTENT_TYPE;
 use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, HeaderMap};
 use serde::{Serialize, Deserialize};
-use tokio::task::{JoinError, JoinSet};
+use tokio::task::JoinSet;
 use tracing::debug;
-use typeshare::typeshare;
 use uuid::Uuid;
 
-#[typeshare]
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all="camelCase")]
-struct AuthKey {
-    key_id: Uuid,
+pub struct AuthKey {
+    id: Uuid,
     key: Uuid,
+}
+
+impl AuthKey {
+    pub fn new(key: Uuid, id: Uuid) -> Self {
+        Self {key, id}
+    }
+
+    async fn get_client(&self, url: &str) -> anyhow::Result<Client> {
+        debug!("Authorizing with bucket client");
+        let mut headers = HeaderMap::new();
+        let encoded_key = base64::engine::general_purpose::STANDARD.encode(format!("{}:{}", self.id, self.key));
+        headers.append(AUTHORIZATION, format!("Basic {encoded_key}").parse()?);
+        let client = Client::builder().default_headers(headers).build()?;
+        let res = client
+            .get(format!("{}/key/verify", url))
+            .send().await?;
+
+        if !res.status().is_success() {
+            return Err(anyhow!("Failed to verify key"))
+        }
+
+
+
+        debug!("Successfully authorized with bucket client");
+        return Ok(client);
+    }
 }
 
 
@@ -27,6 +51,11 @@ pub struct BucketClient {
 }
 
 impl BucketClient {
+    pub async fn from_key(url: &str, auth_key: AuthKey) -> Self {
+        let client = auth_key.get_client(url).await.unwrap();
+        Self {client, url: url.to_string()}
+    }
+
     pub async fn new(url: &str) -> Self {
         let auth_key = if let Ok(file_content) = tokio::fs::read_to_string("./key.json").await {
             debug!("Reading auth key from file");
@@ -47,15 +76,9 @@ impl BucketClient {
             tokio::fs::write("./key.json", payload).await.unwrap();
             key
         };
-        let id = auth_key.key_id;
-        let key = auth_key.key;
 
-        let mut headers = HeaderMap::new();
-        let encoded_key = base64::engine::general_purpose::STANDARD.encode(format!("{id}:{key}"));
-        headers.append(AUTHORIZATION, format!("Basic {encoded_key}").parse().unwrap());
-        let client = Client::builder().default_headers(headers).build().unwrap();
-
-        Self {client, url: url.to_string()}
+        let client = auth_key.get_client(url).await.unwrap();
+        Self { client, url: url.to_string() }
     }
 
     pub async fn upload(&self, image: String) -> anyhow::Result<Uuid> {

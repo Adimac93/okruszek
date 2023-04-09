@@ -4,10 +4,13 @@ use axum::Router;
 use axum::http::{StatusCode, Uri};
 use axum::response::IntoResponse;
 use sqlx::{migrate, PgPool};
+use tokio::process::Command;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::{ServeDir, ServeFile};
+use tracing::debug;
+use uuid::Uuid;
 use crate::routes::{auth, products};
-use crate::routes::products::files::BucketClient;
+use crate::routes::products::files::{AuthKey, BucketClient};
 
 pub mod routes;
 
@@ -46,8 +49,37 @@ impl AppState {
     pub async fn new(environment: Environment) -> Self {
         let pool = PgPool::connect(&env::var("DATABASE_URL").expect("DATABASE_URL var missing")).await.unwrap();
         if environment == Environment::Production {
+            debug!("Migrating database");
             migrate!("./migrations").run(&pool).await.expect("Failed to migrate");
+
+            debug!("Reading bucket storage environment variables");
+            let key = env::var("BUCKET_KEY").expect("BUCKET_KEY var missing");
+            let id = env::var("BUCKET_KEY_ID").expect("BUCKET_KEY_ID var missing");
+            let bucket_url = env::var("BUCKET_URL").expect("BUCKET_URL var missing");
+
+            let bucket_client = match (key.parse::<Uuid>(), id.parse::<Uuid>()) {
+                (Ok(key), Ok(id)) => {
+                    debug!("Connecting with bucket storage at `{bucket_url}`");
+                    BucketClient::from_key(&bucket_url, AuthKey::new(key, id)).await
+                }
+                _ => panic!("Failed to parse key part")
+            };
+            return Self {pool, bucket_client}
         }
+
+        // blocking
+        debug!("Compiling frontend");
+        let status = Command::new("npm")
+            .arg("run")
+            .arg("build")
+            .current_dir("../frontend")
+            .spawn().unwrap()
+            .wait().await.unwrap();
+
+        if status.success() {
+            debug!("Successfully compiled frontend");
+        }
+
         let bucket_client = BucketClient::new("http://127.0.0.1:3001").await;
         Self { pool, bucket_client }
     }
