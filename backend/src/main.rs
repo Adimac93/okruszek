@@ -38,13 +38,14 @@ async fn main() {
             let prev_checksum = get_file_checksum(output_dir).await;
 
 
+            // depends on typeshare-cli
             let _output = Command::new("typeshare")
                 .arg(".")
                 .arg("--lang=typescript")
                 .arg("--output-file=../frontend/src/lib/interfaces.ts")
                 .output()
                 .await
-                .expect("Failed to execute typeshare");
+                .expect("Failed to execute typeshare `cargo install typeshare-cli`");
 
             let curr_checksum = get_file_checksum(output_dir).await;
 

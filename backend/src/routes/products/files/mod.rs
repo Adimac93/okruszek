@@ -1,12 +1,14 @@
+use std::time::Duration;
 use anyhow::anyhow;
 use axum::body::{Bytes};
 use axum::extract::FromRef;
 use base64::Engine;
 use hyper::header::CONTENT_TYPE;
-use reqwest::Client;
+use reqwest::{Client};
 use reqwest::header::{AUTHORIZATION, HeaderMap};
 use serde::{Serialize, Deserialize};
 use tokio::task::JoinSet;
+use tokio::time::sleep;
 use tracing::debug;
 use uuid::Uuid;
 
@@ -23,7 +25,6 @@ impl AuthKey {
     }
 
     async fn get_client(&self, url: &str) -> anyhow::Result<Client> {
-        debug!("Authorizing with bucket client");
         let mut headers = HeaderMap::new();
         let encoded_key = base64::engine::general_purpose::STANDARD.encode(format!("{}:{}", self.id, self.key));
         headers.append(AUTHORIZATION, format!("Basic {encoded_key}").parse()?);
@@ -51,12 +52,30 @@ pub struct BucketClient {
 }
 
 impl BucketClient {
+    pub async fn test_connection(url: &str) {
+        debug!("Testing bucket client connection");
+        loop {
+            let res = Client::new()
+                .get(url)
+                .send().await;
+
+            if res.is_ok() {
+                break;
+            }
+            sleep(Duration::from_secs(3)).await;
+            debug!("Retrying to connect with bucket client");
+        }
+
+    }
+
     pub async fn from_key(url: &str, auth_key: AuthKey) -> Self {
+        Self::test_connection(url).await;
         let client = auth_key.get_client(url).await.unwrap();
         Self {client, url: url.to_string()}
     }
 
     pub async fn new(url: &str) -> Self {
+        Self::test_connection(url).await;
         let auth_key = if let Ok(file_content) = tokio::fs::read_to_string("./key.json").await {
             debug!("Reading auth key from file");
             serde_json::from_str::<AuthKey>(&file_content).unwrap()
@@ -108,15 +127,12 @@ impl BucketClient {
 
     pub async fn download_many(&self, files_ids: Vec<(Uuid, Uuid)>) -> JoinSet<(Uuid, Result<(Uuid, String), anyhow::Error>)> {
         let mut set = JoinSet::new();
-        //let mut images: Vec<(Uuid, String)> = Vec::with_capacity(files_ids.len());
-
         for (product_id, file_id) in files_ids {
             let cloned_client = self.clone();
             set.spawn(async move {
                 (product_id, cloned_client.download(file_id).await)
             });
         }
-
 
         set
     }

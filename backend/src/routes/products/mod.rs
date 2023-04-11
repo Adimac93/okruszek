@@ -22,7 +22,7 @@ pub fn router() -> Router<AppState> {
 }
 
 #[typeshare]
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 struct Product {
     name: String,
     price: f64,
@@ -60,6 +60,7 @@ async fn fetch_all(session: Claims, state: State<AppState>) -> Result<Json<HashM
         if let Ok((product_id, data)) = join {
             if let Ok((image_id, image)) = data {
                 debug!("Fetched image: {image_id}");
+                debug!("Image: {image}");
                 products.entry(product_id).and_modify(|product| product.image = Some(image));
             } else {
                 error!("Image encoding failed");
@@ -69,7 +70,7 @@ async fn fetch_all(session: Claims, state: State<AppState>) -> Result<Json<HashM
         }
 
     }
-
+    debug!("{products:#?}");
     Ok(Json(products))
 }
 
