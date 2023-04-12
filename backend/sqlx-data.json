@@ -46,65 +46,6 @@
     },
     "query": "\n    INSERT INTO users (username)\n    VALUES ($1)\n    RETURNING id\n    "
   },
-  "4a54a12f5a741bd6fccfacaae49314f67e4f61180af1e677ce08031e7110cbc8": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "name",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "price",
-          "ordinal": 2,
-          "type_info": "Float8"
-        },
-        {
-          "name": "rating",
-          "ordinal": 3,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n    SELECT id, name, price, rating\n    FROM products p\n    LEFT JOIN product_ratings pr ON pr.product_id = p.id AND pr.user_id = $1\n    "
-  },
-  "552c88a351d5362cb59440a5228a8976d3fc03e5d489d8fc733515a1aaf8d9cb": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Float8"
-        ]
-      }
-    },
-    "query": "\n    INSERT INTO products (name, price)\n    VALUES ($1, $2)\n    RETURNING id\n    "
-  },
   "56b16616fff6943a2b7430e605337f5375e83c122da7e90afdaa89843cb22d5d": {
     "describe": {
       "columns": [
@@ -151,6 +92,50 @@
       }
     },
     "query": "\n        INSERT INTO sessions (user_id)\n        VALUES ($1)\n        RETURNING id\n        "
+  },
+  "b8a0c954fe745458a4957deb93eda8ce1bb72ef376739d806a120ec86b978fdd": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "price",
+          "ordinal": 2,
+          "type_info": "Float8"
+        },
+        {
+          "name": "rating",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "image_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n    SELECT id, name, price, rating, image_id\n    FROM products p\n    LEFT JOIN product_ratings pr ON pr.product_id = p.id AND pr.user_id = $1\n    "
   },
   "c10ecdb0a6ca54656f212e77f989b7eab10cb524bf1e561b1f749c79d1e003dd": {
     "describe": {
@@ -256,6 +241,20 @@
       }
     },
     "query": "\n            SELECT user_id\n            FROM sessions\n            JOIN users ON sessions.user_id = users.id\n            WHERE sessions.id = $1\n            "
+  },
+  "e58a54f5e807eedff36c9e2bba21e3adaae6eeaae3fc7a08f68a0729d955c4cc": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Float8",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n        INSERT INTO products (name, price, image_id)\n        VALUES ($1, $2, $3)\n        "
   },
   "f04632c1d59f710103efcc1555ebf436ca45695b3bd4b9b934bc3cd4a5a6637a": {
     "describe": {
