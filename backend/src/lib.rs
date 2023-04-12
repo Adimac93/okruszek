@@ -67,19 +67,6 @@ impl AppState {
             return Self {pool, bucket_client}
         }
 
-        // blocking
-        debug!("Compiling frontend");
-        let status = Command::new("npm")
-            .arg("run")
-            .arg("build")
-            .current_dir("../frontend")
-            .spawn().unwrap()
-            .wait().await.unwrap();
-
-        if status.success() {
-            debug!("Successfully compiled frontend");
-        }
-
         let bucket_client = BucketClient::new("http://127.0.0.1:3001").await;
         Self { pool, bucket_client }
     }

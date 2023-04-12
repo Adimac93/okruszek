@@ -6,7 +6,7 @@ use sha1::{Sha1, Digest};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tokio::process::Command;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use backend::{app, AppState, Environment};
@@ -68,6 +68,19 @@ async fn main() {
             SocketAddr::from(([127, 0, 0, 1], 3000))
         },
         Environment::Production => {
+            // blocking
+            debug!("Compiling frontend");
+            let status = Command::new("npm")
+                .arg("run")
+                .arg("build")
+                .current_dir("../frontend")
+                .spawn().unwrap()
+                .wait().await.unwrap();
+
+            if status.success() {
+                debug!("Successfully compiled frontend");
+            }
+
             let port = env::var("PORT").expect("PORT var missing").parse::<u16>().expect("Failed to parse PORT var");
             SocketAddr::from(([0, 0, 0, 0], port)) }
     };
