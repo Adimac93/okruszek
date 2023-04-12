@@ -1,0 +1,3 @@
+# https://nixpacks.com/docs/configuration/file
+[phase.name]
+nixPkgs = ['nodejs-19_x']
