@@ -1,0 +1,15 @@
+#Backend
+/backend/target
+/backend/key.json
+/backend/typeshare.toml
+
+#Frontend
+/frontend/dist
+/frontend/node_modules
+
+#
+.vscode
+.idea
+*.env
+.git
+*.md
