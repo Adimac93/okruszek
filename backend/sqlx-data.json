@@ -73,6 +73,32 @@
     },
     "query": "\n    SELECT username, rating\n    FROM product_ratings pr\n    JOIN users ON users.id = pr.user_id\n    WHERE pr.product_id = $1 AND pr.user_id <> $2\n    "
   },
+  "7834d9d2fefc002ae1fe796c20b110cd11c06c134c18b15d1cc7fd5af95688be": {
+    "describe": {
+      "columns": [
+        {
+          "name": "author",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "content",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n    SELECT users.username AS author, content\n    FROM product_comments\n    JOIN users ON users.id = product_comments.user_id\n    WHERE product_id = $1\n    "
+  },
   "87d3e229e3bb19e37dc48fedec9da9eaa6cf9d0509ed646cfe836e5ea44df90f": {
     "describe": {
       "columns": [
@@ -202,6 +228,20 @@
     },
     "query": "\n    SELECT *\n    FROM credentials\n    WHERE email = $1\n    "
   },
+  "c846576ec4ff1726ab0406c330b4d5d74d02235698ef529d7bc9305408ac6108": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n    INSERT INTO product_comments (product_id, user_id, content)\n    VALUES ($1, $2, $3)\n    "
+  },
   "ceb22624f0d9d671e8b24771fc8ef8a605473ae918b00e185d3f93c26f2f6447": {
     "describe": {
       "columns": [
@@ -221,6 +261,19 @@
       }
     },
     "query": "\n    INSERT INTO sessions (user_id)\n    VALUES ($1)\n    RETURNING id\n    "
+  },
+  "d76da34241cb5981f96a4c27475f86baa93e5cacf2ad6d712e0f16b5742bc06a": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n    DELETE FROM product_comments\n    WHERE user_id = $1 AND id = $2\n    "
   },
   "e31f1a1986d91612c4389fcc00cbab0d2854d62b0cd2bf5e11f17e993121353a": {
     "describe": {

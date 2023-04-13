@@ -1,9 +1,11 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { json } from "./api";
+    import { json } from "../api";
     import Rate from "./Rate.svelte";
-    import { products, type InterfaceProduct } from "./stores";
-    import type { Product } from "./interfaces";
+    import { products, type InterfaceProduct } from "../stores";
+    import type { Product } from "../interfaces";
+    import Comment from "../comments/Comment.svelte";
+    import Comments from "../comments/Comments.svelte";
 
     onMount(async () => {
         console.log("Getting products");
@@ -21,7 +23,7 @@
     });
 
     const loadRatings = async (id: string) => {
-        const res = await json(`/api/products/ratings/${id}`, "GET");
+        const res = await json(`/api/products/${id}/ratings`, "GET");
         if (res) {
             const body = await res.json();
             products.update((pr) => {
@@ -66,4 +68,5 @@
         }}>Zobacz oceny</button
     >
     <hr />
+    <Comments bind:productId={id} />
 {/each}

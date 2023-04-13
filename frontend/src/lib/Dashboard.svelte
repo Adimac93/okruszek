@@ -1,7 +1,7 @@
 <script lang="ts">
-    import AddProduct from "./AddProduct.svelte";
+    import AddProduct from "./products/AddProduct.svelte";
     import Logout from "./auth/Logout.svelte";
-    import Products from "./Products.svelte";
+    import Products from "./products/Products.svelte";
 </script>
 
 <Logout />

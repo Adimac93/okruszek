@@ -13,6 +13,15 @@ export interface LoginCredentials {
 	password: string;
 }
 
+export interface AddComment {
+	content: string;
+}
+
+export interface Comment {
+	author: string;
+	content: string;
+}
+
 export interface Product {
 	name: string;
 	price: number;

@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { json } from "./api";
-    import type { AddProduct } from "./interfaces";
+    import { json } from "../api";
+    import type { AddProduct } from "../interfaces";
 
     let name;
     let price;

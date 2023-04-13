@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { json } from "./api";
-    import type { Rate } from "./interfaces";
-    import { products } from "./stores";
+    import { json } from "../api";
+    import type { Rate } from "../interfaces";
+    import { products } from "../stores";
 
     let rating = 5;
 
@@ -9,7 +9,7 @@
 
     const rate = async () => {
         const res = await json<Rate>(
-            `/api/products/ratings/${productId}`,
+            `/api/products/${productId}/ratings`,
             "PUT",
             {
                 rating,

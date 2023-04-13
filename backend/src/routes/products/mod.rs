@@ -1,5 +1,6 @@
 mod errors;
 pub mod files;
+mod comments;
 
 use std::collections::HashMap;
 use crate::routes::products::errors::ProductError;
@@ -15,10 +16,10 @@ use typeshare::typeshare;
 use crate::routes::auth::session::Claims;
 
 pub fn router() -> Router<AppState> {
-
     Router::new()
         .route("/", get(fetch_all).put(add))
-        .route("/ratings/:product_id", get(ratings).put(rate))
+        .route("/:product_id/comments", comments::method_router())
+        .route("/:product_id/ratings", get(ratings).put(rate))
 }
 
 #[typeshare]

@@ -36,11 +36,12 @@ CREATE TABLE product_ratings (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- https://www.aleksandra.codes/comments-db-model
 CREATE TABLE product_comments (
     id UUID DEFAULT gen_random_uuid(),
     product_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    comment TEXT NOT NULL,
+    content TEXT NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
